@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Friendship's Apple Cake Season",
+    "slug": "friendships-apple-cake-season",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "applecake",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.friendships.applecakeseason"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FAF3E0"
+      },
+      "package": "com.friendships.applecakeseason"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
