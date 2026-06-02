@@ -448,7 +448,7 @@ if(!CanvasRenderingContext2D.prototype.roundRect){
 // Splash fruit rain
 const fruits=['🍎','🍏','🧁','🍐','🍊','🌳','🍋'];
 setInterval(()=>{
-  if(!document.getElementById('splash').classList.contains('hide'))return;
+  if(!document.getElementById("splash")||document.getElementById("splash").classList.contains("hide"))return;
   const f=document.createElement('div');f.className='fp';
   f.textContent=fruits[Math.floor(Math.random()*fruits.length)];
   f.style.left=Math.random()*90+5+'vw';
