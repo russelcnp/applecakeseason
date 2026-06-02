@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Friendship's Apple Cake Season</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--cream:#FAF3E0;--rust:#B5451B;--teal:#2A6B6B;--red:#E84848;--gold:#FFD700}
+body{background:var(--cream);font-family:-apple-system,BlinkMacSystemFont,sans-serif;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;position:absolute;top:0;left:0;width:100%;height:100%}
+.screen{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .3s}
+.hidden{display:none!important}
+#splash{background:linear-gradient(135deg,#FAF3E0,#F5E6C8,#E8F5E9)}
+#game{background:linear-gradient(180deg,#E8F5E9 0%,#F5E6C4 50%,#FAF3E0 100%)}
+#score{background:linear-gradient(135deg,#FAF3E0,#F5E6C8)}
+.title-main{font-size:2.4rem;color:var(--teal);font-weight:300;letter-spacing:3px;text-align:center}
+.title-accent{font-size:3rem;color:var(--rust);font-weight:900;letter-spacing:1px;text-align:center}
+.subtitle{font-size:1rem;color:var(--teal);margin-top:8px;text-align:center;font-style:italic;opacity:.8}
+.play-btn{margin-top:32px;background:linear-gradient(135deg,var(--red),#C73535);color:var(--cream);border:none;padding:18px 60px;border-radius:30px;font-size:1.3rem;font-weight:900;letter-spacing:3px;cursor:pointer;box-shadow:0 4px 15px rgba(181,69,27,.3);transition:transform .1s}
+.play-btn:active{transform:scale(.95)}
+.char-btn,.set-btn{position:absolute;bottom:30px;background:none;border:none;cursor:pointer;font-size:1.5rem;color:var(--teal);display:flex;flex-direction:column;align-items:center;gap:2px;opacity:.6}
+.char-btn{left:30px}.set-btn{right:30px}
+.char-btn span,.set-btn span{font-size:.7rem;font-weight:600}
+.logo-anim{font-size:5rem;animation:bounce 1s ease infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
+.falling-particle{position:absolute;font-size:1.5rem;animation:fall linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+/* Score screen */
+.stars{font-size:3.5rem;color:var(--rust);letter-spacing:8px;text-align:center;animation:starPop .5s ease}
+@keyframes starPop{0%{transform:scale(0)}80%{transform:scale(1.2)}100%{transform:scale(1)}}
+.cake-label{font-size:1.5rem;color:var(--teal);font-weight:800;text-align:center;margin-bottom:16px}
+.card{background:rgba(255,255,255,.7);border-radius:20px;padding:24px;width:85%;max-width:340px;margin:0 auto 20px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(42,107,107,.1)}
+.row:last-child{border:none}
+.row-label{color:var(--teal);font-weight:600;font-size:.95rem}
+.row-value{color:var(--rust);font-weight:800;font-size:1.05rem}
+.btn{display:block;width:85%;max-width:300px;margin:10px auto;padding:14px;border-radius:25px;border:none;font-weight:800;font-size:1rem;cursor:pointer;text-align:center;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--red),#C73535);color:var(--cream);box-shadow:0 4px 12px rgba(232,72,72,.3);}
+.btn-secondary{background:transparent;color:var(--teal);border:2px solid var(--teal)}
+/* HUD */
+.hud{position:absolute;top:0;left:0;right:0;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:10}
+.hud-left,.hud-right{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.hud-right{align-items:flex-end}
+.hearts{display:flex;gap:2px}
+.hud-text{color:var(--teal);font-weight:700;font-size:.85rem}
+.cake-mini{position:absolute;bottom:20px;right:16px;display:flex;align-items:center;gap:6px;pointer-events:none}
+.cake-emoji{font-size:1.3rem}
+.cake-bar-bg{width:50px;height:8px;background:rgba(0,0,0,.12);border-radius:4px;overflow:hidden}
+.cake-bar-fill{height:100%;background:var(--rust);border-radius:4px;transition:width .3s}
+.combo-badge{position:absolute;top:70px;left:16px;background:var(--red);color:var(--cream);border-radius:12px;padding:4px 12px;font-weight:900;font-size:.85rem;animation:pop .3s ease;pointer-events:none}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.power-badge{position:absolute;top:100px;left:16px;background:rgba(42,107,107,.9);color:var(--cream);border-radius:8px;padding:3px 10px;font-weight:700;font-size:.75rem;pointer-events:none}
+.close-call{position:absolute;top:45%;left:0;right:0;text-align:center;font-size:1.5rem;font-weight:900;color:var(--red);text-shadow:0 1px 4px rgba(255,255,255,.8);pointer-events:none;animation:fadeUp 1s ease forwards}
+@keyframes fadeUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-30px)}}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash" class="screen">
+  <div class="logo-anim">🧁</div>
+  <div class="title-main">Friendship's</div>
+  <div class="title-accent">Apple Cake</div>
+  <div class="title-main">Season</div>
+  <div class="subtitle">Collect apples. Bake cakes. Make friends.</div>
+  <button class="play-btn" id="playBtn">TAP TO PLAY</button>
+  <button class="char-btn" id="charBtn"><span>👤</span><span>Characters</span></button>
+  <button class="set-btn" id="setBtn"><span>⚙️</span><span>Settings</span></button>
+</div>
+
+<!-- GAME -->
+<div id="game" class="screen hidden">
+  <canvas id="gameCanvas"></canvas>
+  <div class="hud">
+    <div class="hud-left">
+      <div class="hearts" id="hearts"></div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-text" id="appleCount">🍎 0</div>
+      <div class="hud-text" id="scoreDisplay">⭐ 0</div>
+      <div class="hud-text" id="distDisplay">0m</div>
+    </div>
+  </div>
+  <div class="cake-mini">
+    <span class="cake-emoji">🧁</span>
+    <div class="cake-bar-bg"><div class="cake-bar-fill" id="cakeBar"></div></div>
+  </div>
+  <div id="comboBadge"></div>
+  <div id="powerBadge"></div>
+  <div id="closeCall"></div>
+</div>
+
+<!-- SCORE -->
+<div id="score" class="screen hidden">
+  <div class="stars" id="stars"></div>
+  <div class="cake-label" id="cakeLabel"></div>
+  <div class="card">
+    <div class="row"><span class="row-label">Score</span><span class="row-value" id="finalScore"></span></div>
+    <div class="row"><span class="row-label">🍎 Apples</span><span class="row-value" id="finalApples"></span></div>
+    <div class="row"><span class="row-label">📏 Distance</span><span class="row-value" id="finalDist"></span></div>
+    <div class="row"><span class="row-label">🧁 Cake</span><span class="row-value" id="finalCake"></span></div>
+    <div class="row"><span class="row-label">🏆 Best</span><span class="row-value" id="bestScore"></span></div>
+  </div>
+  <button class="btn btn-primary" id="retryBtn">TRY AGAIN</button>
+  <button class="btn btn-secondary" id="shareBtn">📤 Share Score</button>
+  <button class="btn btn-secondary" id="homeBtn">🏠 Home</button>
+</div>
+
+<script>
+(function(){
+// — Audio —
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+let ac;
+function initAudio(){if(!ac)ac=new AudioCtx()}
+function playTone(freq,dur,type,vol){
+  if(!ac)return;
+  const o=ac.createOscillator(),g=ac.createGain();
+  o.type=type||'sine';o.frequency.value=freq;
+  g.gain.setValueAtTime(vol||.15,ac.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+dur);
+  o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+dur);
+}
+function sfxCollect(){playTone(880,.1,'sine',.12);setTimeout(()=>playTone(1105,.15,'sine',.1),50)}
+function sfxHit(){playTone(150,.3,'sawtooth',.15);playTone(120,.3,'square',.08)}
+function sfxCombo(){playTone(660,.1,'sine',.1);setTimeout(()=>playTone(880,.1,'sine',.1),80);setTimeout(()=>playTone(1046,.15,'sine',.1),160)}
+function sfxPower(){playTone(523,.1,'sine',.1);setTimeout(()=>playTone(659,.1,'sine',.1),70);setTimeout(()=>playTone(784,.2,'sine',.1),140)}
+
+// — Vibrate —
+function vibrate(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
+
+// — State —
+const W=document.documentElement.clientWidth;
+const H=document.documentElement.clientHeight;
+const LANES=5;
+const LANE_H=H/(LANES+2);
+const PLAYER_W=38;
+
+let scr,ctx;
+let screen='splash';
+let playerLane=2;
+let hearts=3;
+let score=0,apples=0,distance=0,cakePct=0;
+let combo=1,streak=0;
+let golden=false,rainbow=false,frozen=false;
+let goldenT=0,rainbowT=0,frozenT=0;
+let elapsed=0,lastTime=0;
+let running=false;
+let shakeTime=0,flashTime=0;
+
+const appleList=[];
+const ghostList=[];
+const particles=[];
+
+let bestScore=parseInt(localStorage.getItem('best')||'0');
+let soundOn=localStorage.getItem('sound')!=='false';
+
+// — Resize —
+function resize(){
+  const c=document.getElementById('gameCanvas');
+  c.width=c.offsetWidth*devicePixelRatio;
+  c.height=c.offsetHeight*devicePixelRatio;
+  scr=c.offsetWidth;ctx=c.getContext('2d');
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+}
+window.addEventListener('resize',resize);
+
+// — Spawning —
+let appleTimer=0,ghostTimer=0;
+function spawnApple(){
+  const r=Math.random()*100;
+  let type,pts;
+  if(r<60){type='🍏';pts=10}
+  else if(r<85){type='🍎';pts=25}
+  else if(r<95){type='🌟';pts=50}
+  else{type='🌈';pts=100}
+  appleList.push({x:scr+30,y:Math.floor(Math.random()*LANES)*LANE_H+LANE_H+LANE_H/2,type,pts,active:true});
+}
+function spawnGhost(){
+  const emojis=['👻','🔵','🟡','🟢'];
+  ghostList.push({x:scr+30,y:Math.floor(Math.random()*LANES)*LANE_H+LANE_H+LANE_H/2,emoji:emojis[Math.floor(Math.random()*emojis.length)],active:true});
+}
+
+// — Particles —
+function addParticle(x,y,emoji){
+  particles.push({x,y,emoji,life:1,vx:(Math.random()-.5)*4,vy:-Math.random()*3-2});
+}
+
+// — Collision —
+function dist(ax,ay,bx,by){return Math.sqrt((ax-bx)*(ax-bx)+(ay-by)*(by-ay))}
+
+// — Game Loop —
+function loop(now){
+  if(!running)return;
+  const dt=Math.min((now-lastTime)/1000,.05);
+  lastTime=now;
+  elapsed+=dt;
+
+  const diff=1+Math.floor(elapsed/20)*.08;
+
+  // Timers
+  if(golden){goldenT-=dt;if(goldenT<=0){golden=false;goldenT=0}}
+  if(rainbow){rainbowT-=dt;if(rainbowT<=0){rainbow=false;rainbowT=0}}
+  if(frozen){frozenT-=dt;if(frozenT<=0){frozen=false;frozenT=0}}
+
+  // Spawn
+  appleTimer-=dt;
+  if(appleTimer<=0){spawnApple();appleTimer=.8/diff}
+  ghostTimer-=dt;
+  if(ghostTimer<=0){spawnGhost();ghostTimer=2/diff}
+
+  // Move apples
+  const spd=180*diff;
+  for(let i=appleList.length-1;i>=0;i--){
+    appleList[i].x-=spd*dt;
+    if(appleList[i].x<-30)appleList.splice(i,1);
+  }
+  // Move ghosts
+  if(!frozen){
+    for(let i=ghostList.length-1;i>=0;i--){
+      ghostList[i].x-=spd*.75*dt;
+      if(ghostList[i].x<-30)ghostList.splice(i,1);
+    }
+  }
+
+  // Player position
+  const px=60;
+  const py=playerLane*LANE_H+LANE_H+LANE_H/2+LANE_H/2;
+  // Adjust for visual layout - player is on the left side
+  const playerPosY=(playerLane+1)*LANE_H+LANE_H/2;
+
+  // Apple collision
+  for(let i=appleList.length-1;i>=0;i--){
+    const a=appleList[i];
+    if(!a.active)continue;
+    if(dist(a.x,a.y,px,playerPosY)<(PLAYER_W+28)/2){
+      a.active=false;
+      apples++;
+      streak++;
+      score+=a.pts*combo;
+      cakePct=Math.min(100,cakePct+a.pts*.15);
+      addParticle(a.x,a.y,a.type);
+      if(soundOn)sfxCollect();
+      vibrate(30);
+      if(streak>=10){combo=Math.min(combo+1,5);streak=0;if(soundOn)sfxCombo();showCloseCall('Sweet Streak x'+combo+'!')}
+      if(a.type==='🌟'){golden=true;goldenT=5;if(soundOn)sfxPower()}
+      if(a.type==='🌈'){rainbow=true;rainbowT=3;frozen=true;frozenT=3;if(soundOn)sfxPower()}
+      appleList.splice(i,1);
+      updateHUD();
+    }
+  }
+
+  // Ghost collision
+  for(let i=ghostList.length-1;i>=0;i--){
+    const g=ghostList[i];
+    if(!g.active)continue;
+    if(dist(g.x,g.y,px,playerPosY)<(PLAYER_W+28)/2){
+      g.active=false;
+      hearts--;
+      combo=1;streak=0;
+      shakeTime=.3;flashTime=.3;
+      if(soundOn)sfxHit();
+      vibrate([50,30,50]);
+      ghostList.splice(i,1);
+      updateHUD();
+      if(hearts<=0){gameOver();return}
+    }
+    // Near miss
+    if(dist(g.x,g.y,px,playerPosY)<(PLAYER_W+28)/2+15 && dist(g.x,g.y,px,playerPosY)>(PLAYER_W+28)/2){
+      if(!g.nearMissed){g.nearMissed=true;score+=5;showCloseCall('Close Call! +5');if(soundOn)sfxCollect()}
+    }
+  }
+
+  distance+=spd*dt*.1;
+
+  // Particles
+  for(let i=particles.length-1;i>=0;i--){
+    particles[i].x+=particles[i].vx;
+    particles[i].y+=particles[i].vy;
+    particles[i].vy+=.2;
+    particles[i].life-=dt*2;
+    if(particles[i].life<=0)particles.splice(i,1);
+  }
+
+  shakeTime=Math.max(0,shakeTime-dt);
+  flashTime=Math.max(0,flashTime-dt);
+
+  render();
+  requestAnimationFrame(loop);
+}
+
+// — Render —
+function render(){
+  const c=ctx;
+  const W=scr,H=document.documentElement.clientHeight;
+
+  // Clear
+  c.clearRect(0,0,W,H);
+
+  // Shake
+  if(shakeTime>0){
+    c.save();
+    c.translate((Math.random()-.5)*10,(Math.random()-.5)*10);
+  }
+
+  // Lane lines
+  c.strokeStyle='rgba(42,107,107,.08)';
+  c.lineWidth=1;
+  for(let i=1;i<=LANES+1;i++){
+    c.beginPath();c.moveTo(0,i*LANE_H);c.lineTo(W,i*LANE_H);c.stroke();
+  }
+
+  // Road area
+  c.fillStyle='rgba(255,255,255,.15)';
+  c.fillRect(0,LANE_H,W,LANE_H*LANES);
+
+  // Distance stripes
+  const offset=(distance*3)%80;
+  c.strokeStyle='rgba(255,255,255,.3)';
+  c.lineWidth=2;
+  for(let x=-offset;x<W;x+=80){
+    c.beginPath();c.moveTo(x,LANE_H);c.lineTo(x+30,LANE_H);c.stroke();
+    c.beginPath();c.moveTo(x,LANE_H*(LANES+1));c.lineTo(x+30,LANE_H*(LANES+1));c.stroke();
+  }
+
+  // Apples
+  c.font='24px serif';
+  c.textAlign='center';c.textBaseline='middle';
+  for(const a of appleList){
+    if(a.active)c.fillText(a.type,a.x,a.y);
+  }
+
+  // Ghosts
+  for(const g of ghostList){
+    if(g.active)c.fillText(g.emoji,g.x,g.y);
+  }
+
+  // Particles
+  for(const p of particles){
+    c.globalAlpha=p.life;
+    c.font='18px serif';
+    c.fillText(p.emoji,p.x,p.y);
+  }
+  c.globalAlpha=1;
+
+  // Player
+  const px=50;
+  const py=(playerLane+1)*LANE_H+LANE_H/2;
+  c.font='32px serif';
+  if(golden)c.fillText('⚡',px,py);
+  else if(rainbow)c.fillText('🌈',px,py);
+  else c.fillText('🧑‍🌾',px,py);
+
+  // Ghost freeze effect
+  if(frozen){
+    c.fillStyle='rgba(100,200,255,.08)';
+    c.fillRect(0,0,W,H);
+  }
+
+  if(shakeTime>0)c.restore();
+
+  // Red flash
+  if(flashTime>0){
+    c.fillStyle=`rgba(232,72,72,${flashTime})`;
+    c.fillRect(0,0,W,H);
+  }
+}
+
+// — HUD —
+function updateHUD(){
+  const h=document.getElementById('hearts');
+  h.innerHTML='';
+  for(let i=0;i<3;i++){
+    const s=document.createElement('span');
+    s.textContent=i<hearts?'❤️':'🖤';
+    s.style.fontSize='16px';
+    h.appendChild(s);
+  }
+  document.getElementById('appleCount').textContent='🍎 '+apples;
+  document.getElementById('scoreDisplay').textContent='⭐ '+score;
+  document.getElementById('distDisplay').textContent=Math.floor(distance)+'m';
+  document.getElementById('cakeBar').style.width=cakePct+'%';
+
+  const cb=document.getElementById('comboBadge');
+  if(combo>1){cb.textContent='x'+combo;cb.className='combo-badge'}else{cb.textContent='';cb.className=''}
+
+  const pb=document.getElementById('powerBadge');
+  if(golden)pb.textContent='⚡ '+Math.ceil(goldenT)+'s';
+  else if(frozen)pb.textContent='❄️ '+Math.ceil(frozenT)+'s';
+  else{pb.textContent=''}
+}
+
+function showCloseCall(txt){
+  const el=document.getElementById('closeCall');
+  el.textContent=txt;
+  el.className='close-call';
+  setTimeout(()=>{el.className='close-call hidden'},900);
+}
+
+// — Controls —
+let touchStartY=0,touchStartX=0;
+
+document.addEventListener('touchstart',e=>{
+  if(!running)return;
+  const t=e.touches[0];
+  touchStartY=t.clientY;
+  touchStartX=t.clientX;
+},{passive:true});
+
+document.addEventListener('touchend',e=>{
+  if(!running)return;
+  initAudio();
+  const t=e.changedTouches[0];
+  const dy=t.clientY-touchStartY;
+  const dx=t.clientX-touchStartX;
+  if(Math.abs(dy)>Math.abs(dx)){
+    if(dy<-20&&playerLane>0){playerLane--;vibrate(15)}
+    else if(dy>20&&playerLane<LANES-1){playerLane++;vibrate(15)}
+  } else {
+    if(dx>20){vibrate(15)}
+    // tap = dash (brief speed boost could be added)
+  }
+},{passive:true});
+
+// Mouse fallback
+let mouseDown=false;
+document.addEventListener('mousedown',e=>{
+  if(!running)return;
+  initAudio();
+  mouseDown=true;
+  touchStartY=e.clientY;touchStartX=e.clientX;
+});
+document.addEventListener('mouseup',e=>{
+  if(!running||!mouseDown)return;
+  mouseDown=false;
+  const dy=e.clientY-touchStartY;
+  const dx=e.clientX-touchStartX;
+  if(Math.abs(dy)>Math.abs(dx)){
+    if(dy<-20&&playerLane>0)playerLane--;
+    else if(dy>20&&playerLane<LANES-1)playerLane++;
+  }
+});
+
+// Keyboard fallback
+document.addEventListener('keydown',e=>{
+  if(!running)return;
+  if(e.key==='ArrowUp'&&playerLane>0){playerLane--;e.preventDefault()}
+  if(e.key==='ArrowDown'&&playerLane<LANES-1){playerLane++;e.preventDefault()}
+});
+
+// — Game Over —
+function gameOver(){
+  running=false;
+  // Slow motion effect
+  shakeTime=.5;
+  render();
+  setTimeout(()=>{
+    if(score>bestScore){bestScore=score;localStorage.setItem('best',bestScore)}
+    const stars=cakePct>=100?3:cakePct>=67?3:cakePct>=34?2:1;
+    const label=cakePct>=100?'PERFECT CAKE! 🎂':cakePct>=67?'Golden! ✨':cakePct>=34?'Almost! 🤏':'Burnt! 🔥';
+    document.getElementById('stars').textContent='★'.repeat(stars)+'☆'.repeat(3-stars);
+    document.getElementById('cakeLabel').textContent=label;
+    document.getElementById('finalScore').textContent=score.toLocaleString();
+    document.getElementById('finalApples').textContent=apples;
+    document.getElementById('finalDist').textContent=Math.floor(distance)+'m';
+    document.getElementById('finalCake').textContent=Math.floor(cakePct)+'%';
+    document.getElementById('bestScore').textContent=bestScore.toLocaleString();
+    showScreen('score');
+  },800);
+}
+
+// — Navigation —
+function showScreen(s){
+  document.querySelectorAll('.screen').forEach(el=>el.classList.add('hidden'));
+  document.getElementById(s).classList.remove('hidden');
+  screen=s;
+}
+
+function startGame(){
+  initAudio();
+  playerLane=2;hearts=3;score=0;apples=0;distance=0;cakePct=0;
+  combo=1;streak=0;golden=false;rainbow=false;frozen=false;
+  goldenT=0;rainbowT=0;frozenT=0;elapsed=0;
+  appleList.length=0;ghostList.length=0;particles.length=0;
+  appleTimer=0;ghostTimer=0;
+  resize();
+  showScreen('game');
+  updateHUD();
+  running=true;
+  lastTime=performance.now();
+  requestAnimationFrame(loop);
+}
+
+// — Buttons —
+document.getElementById('playBtn').addEventListener('click',e=>{e.stopPropagation();startGame()});
+document.getElementById('retryBtn').addEventListener('click',startGame);
+document.getElementById('homeBtn').addEventListener('click',()=>showScreen('splash'));
+document.getElementById('shareBtn').addEventListener('click',()=>{
+  const txt='🧁 I scored '+score+' points in Friendship\'s Apple Cake Season! Collected '+apples+' apples. Can you beat me?';
+  try{navigator.share({title:'Friendship\'s Apple Cake Season',text:txt})}
+  catch(e){navigator.clipboard.writeText(txt)}
+});
+
+// — Init —
+resize();
+showScreen('splash');
+
+// Splash particles
+const splash=document.getElementById('splash');
+const fruit=['🍎','🍏','🧁','🍰','🥧','🍊','🍋','🍐'];
+setInterval(()=>{
+  if(screen!=='splash')return;
+  const p=document.createElement('div');
+  p.className='falling-particle';
+  p.textContent=fruit[Math.floor(Math.random()*fruit.length)];
+  p.style.left=Math.random()*90+5+'%';
+  p.style.animationDuration=(3+Math.random()*4)+'s';
+  splash.appendChild(p);
+  setTimeout(()=>p.remove(),7000);
+},500);
+
+})();
+</script>
+</body>
+</html>
