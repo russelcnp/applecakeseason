@@ -4,26 +4,25 @@
     "slug": "friendships-apple-cake-season",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "applecake",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAF3E0"
+    },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.friendships.applecakeseason"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#FAF3E0"
-      },
-      "package": "com.friendships.applecakeseason"
-    },
-    "web": {
-      "bundler": "metro"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.friendships.applecake",
+      "requireFullScreen": true
     },
     "plugins": [
       "expo-router"
     ],
+    "scheme": "friendships-apple-cake",
     "experiments": {
-      "typedRoutes": false
+      "typedRoutes": true
     }
   }
 }
